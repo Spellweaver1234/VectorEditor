@@ -1,20 +1,13 @@
 ﻿using Microsoft.Win32;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Xml.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Runtime.Serialization;
+using System.IO;
 
 namespace VectorEditor
 {
@@ -43,17 +36,13 @@ namespace VectorEditor
                     mode = "NewBrokenLine";
                     lab_mode.Content = "Линия с изломами";
                     btn_NewBrokenLine.Content = "Включено";
-                    string name = cd.NameLine;
+                    string name = "";
+                    if (cd.NameLine.Trim().Length == 0) name = "без названия";
+                    else name = cd.NameLine;
                     int thickness = cd.Thickness;
-                    var br = Brushes.Black;
-                    switch(cd.Color.ToString())
-                    {
-                        case "Чёрный": br = Brushes.Black; break;
-                        case "Красный": br = Brushes.Red; break;
-                        case "Зелёный": br = Brushes.Green; break;
-                    }
-                    if (name == "") name = "без названия";
-                    primitives.Add(new Primitive(name, thickness, br));       // новая линия название и толщина
+                    string color = cd.Color.ToString();
+
+                    primitives.Add(new Primitive(name, thickness, color));       // новая линия название и толщина
                     listB_elements.Items.Add(primitives[primitives.Count - 1].Name);
                 }
             }
@@ -200,6 +189,14 @@ namespace VectorEditor
             myCanvas.Children.Clear();
             foreach (Primitive prim in primitives)
             {
+                Brush br;
+                switch (prim.Color)
+                {
+                    case "Чёрный": br = Brushes.Black; break;
+                    case "Красный": br = Brushes.Red; break;
+                    case "Зелёный": br = Brushes.Green; break;
+                    default: br = Brushes.Black; break;
+                }
                 if (prim.Points > 1)
                 {
                     for (int i = 0; i < prim.Points-1; i++)
@@ -209,7 +206,8 @@ namespace VectorEditor
                         line.Y1 = prim.GetListY[i];
                         line.X2 = prim.GetListX[i + 1];
                         line.Y2 = prim.GetListY[i + 1];
-                        line.Stroke = prim.Brush;// Brushes.LightSteelBlue;
+
+                        line.Stroke = br;// Brushes.LightSteelBlue;
                         line.StrokeThickness = prim.Thickness;
                         myCanvas.Children.Add(line);
                     }
@@ -229,13 +227,7 @@ namespace VectorEditor
                 int l = listB_elements.SelectedIndex;
                 tBoxName.Text = primitives[l].Name;
                 sliderThickness.Value = primitives[l].Thickness;
-                var br = primitives[l].Brush;
-                if  (br == Brushes.Black)
-                    comboBox.Text = "Чёрный";
-                if (br == Brushes.Red)
-                    comboBox.Text = "Красный";
-                if (br == Brushes.Green)
-                    comboBox.Text = "Зелёный";
+                comboBox.Text = primitives[l].Color;
                 labNumber.Content = "Точек = " + primitives[l].Points;
             }
         }
@@ -248,14 +240,7 @@ namespace VectorEditor
                 primitives[l].Name = tBoxName.Text;
                 listB_elements.Items[l] = tBoxName.Text;
                 primitives[l].Thickness = (int)sliderThickness.Value;
-                var br = Brushes.Black;
-                switch (comboBox.Text)
-                {
-                    case "Чёрный": br = Brushes.Black; break;
-                    case "Красный": br = Brushes.Red; break;
-                    case "Зелёный": br = Brushes.Green; break;
-                }
-                primitives[l].Brush = br;
+                primitives[l].Color = comboBox.Text;
                 Draw();
             }
             else
@@ -274,12 +259,24 @@ namespace VectorEditor
         
         private void btnLoad_Click(object sender, RoutedEventArgs e)
         {
+            primitives.Clear();
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
+                string path = openFileDialog.FileName;
 
+                DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<Primitive>));
+
+                using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
+                {
+                    primitives = (List<Primitive>)jsonFormatter.ReadObject(fs);
+                }
+                MessageBox.Show("Загружено");
             }
-
+            foreach (var item in primitives)
+            { listB_elements.Items.Add(item.Name); }
+            Draw();
         }
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
@@ -287,23 +284,17 @@ namespace VectorEditor
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             if (saveFileDialog.ShowDialog() == true)                // 
             {
+                string path = saveFileDialog.FileName;
 
-                XmlSerializer formatter = new XmlSerializer(typeof(List<Primitive>));
 
-                using (FileStream fs = new FileStream("people.xml", FileMode.OpenOrCreate))
+                DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<Primitive>));
+
+                using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
                 {
-                    formatter.Serialize(fs, primitives);
+                    jsonFormatter.WriteObject(fs, primitives);
                 }
+                MessageBox.Show("Сохранено");
 
-                //using (FileStream fs = new FileStream("people.xml", FileMode.OpenOrCreate))
-                //{
-                //    Primitive[] newpeople = (Primitive[])formatter.Deserialize(fs);
-
-                //    foreach ( p in newpeople)
-                //    {
-                //        Console.WriteLine("Имя: {0} --- Возраст: {1}", p.Name, p.Age);
-                //    }
-                //}
             }
         }
 

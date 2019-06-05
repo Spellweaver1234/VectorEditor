@@ -9,26 +9,26 @@ using System.Runtime.Serialization;
 
 namespace VectorEditor
 {
-    class Primitive
+    [DataContract]
+    public class Primitive
     {
+        [DataMember]
         public string Name { get; set; }
-
+        [DataMember]
         public int Thickness { get; set; }
-
+        [DataMember]
         public string Color { get; set; }
-
+        [DataMember]
         public int Points { get; set; }
-  
-        public SolidColorBrush Brush { get; set; }
 
         public Primitive()  { }
 
-        public Primitive(string n, int t, SolidColorBrush b)
+        public Primitive(string n, int t, string col)
         {
             Name = n;
             Points = 0;
             Thickness = t;
-            Brush = b;
+            Color = col;
         }
 
         public void AddPoint(int x, int y)   // метод добавления точек
@@ -49,8 +49,13 @@ namespace VectorEditor
                 }
             }
         }
-        public List<int> GetListX { get; } = new List<int>();
-        public List<int> GetListY { get; } = new List<int>();
+        [DataMember]
+        public List<int> GetListX { get; set; } = new List<int>();
+        [DataMember]
+        public List<int> GetListY { get; set; } = new List<int>();
+
+        //public List<int> GetListY { get; } = new List<int>();
+
         public int MiddleX()                                    // средний Х
         {
             int sum = 0;
