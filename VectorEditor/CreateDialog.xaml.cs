@@ -35,6 +35,7 @@ namespace VectorEditor
             }
         }
 
+
         private void btn_Save_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = true;
