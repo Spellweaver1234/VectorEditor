@@ -1,0 +1,25 @@
+﻿<Window x:Class="VectorEditor.CreateDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VectorEditor"
+        mc:Ignorable="d"
+        Title="Ломаная линия" Height="198.788" Width="192.691" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <StackPanel>
+            <Label x:Name="label" Content="Название" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+            <TextBox x:Name="textBox" Height="23" TextWrapping="Wrap" Text=""/>
+            <Label x:Name="label1" Content="Толщина" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+            <Slider x:Name="slider" Value="2" Minimum="1" Maximum="10"/>
+            <Label x:Name="label2" Content="Цвет" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+            <ComboBox x:Name="comboBox">
+                <ComboBoxItem Content="Чёрный"/>
+                <ComboBoxItem Content="Красный"/>
+                <ComboBoxItem Content="Зелёный"/>
+            </ComboBox>
+            <Button x:Name="btn_Save" Content="Сохранить" Click="btn_Save_Click"/>
+        </StackPanel>
+
+    </Grid>
+</Window>

@@ -1,0 +1,48 @@
+﻿<Window x:Class="VectorEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VectorEditor"
+        mc:Ignorable="d"
+        Title="Vector Editor" Height="721" Width="1346.375" WindowStartupLocation="CenterScreen" MouseLeftButtonDown="Window_MouseLeftButtonDown" ResizeMode="NoResize" MouseDoubleClick="Window_MouseDoubleClick">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="140"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel x:Name="stackPanel" Grid.ColumnSpan="1" Margin="0">
+            <Label Content="Примитивы:" HorizontalContentAlignment="Center" FontWeight="Bold" />
+            <Button x:Name="btn_NewBrokenLine" Content="Линия с изломами" Click="btn_NewBrokenLine_Click" Background="#FFDDDDDD"/>
+            <Label Content="Действия:" HorizontalContentAlignment="Center" FontWeight="Bold" />
+            <Button x:Name="btn_DeleteElement" Content="Удалить элемент" Click="btn_DeleteElement_Click"/>
+            <Button x:Name="btn_Transformation" Content="Трансформация" Click="btn_Transformation_Click"/>
+            <Button x:Name="btn_Move" Content="Перемещение" Click="btn_Move_Click"/>
+            <Label Content="Текущи режим:" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+            <Label x:Name="lab_mode" Content="ожидание..." HorizontalContentAlignment="Center" FontStyle="Italic"/>
+            <Label x:Name="label"  Content="Список элементов:" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+            <ListBox x:Name="listB_elements" Height="167" SelectionChanged="listB_elements_SelectionChanged"/>
+            <Label x:Name="lab_helper" Content="" FontStyle="Italic"/>
+            <Button x:Name="btn_Clear" Content="Очистить область" Click="btn_Clear_Click" />
+            <Label x:Name="lab_Info" Content="Редактирование:" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+            <TextBox x:Name="tBoxName" Height="23" TextWrapping="Wrap" Text=""/>
+            <Label x:Name="label1" Content="Толщина:" FontStyle="Italic"/>
+            <Slider x:Name="sliderThickness" Value="2" Interval="1" Minimum="1"/>
+            <Label x:Name="label2" Content="Цвет:" FontStyle="Italic"/>
+            <ComboBox x:Name="comboBox">
+                <ComboBoxItem Content="Чёрный"/>
+                <ComboBoxItem Content="Красный"/>
+                <ComboBoxItem Content="Зелёный"/>
+            </ComboBox>
+            <Label x:Name="labNumber" Content="Точек = " FontStyle="Italic"/>
+            <Button x:Name="btnUpdate" Content="Обновить" Click="btnUpdate_Click"/>
+            <Label x:Name="label3" Content="Проект" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+            <Button x:Name="btnLoad" Content="Загрузить" Click="btnLoad_Click"/>
+            <Button x:Name="btnSave" Content="Сохранить" Click="btnSave_Click"/>
+        </StackPanel>
+        <Grid Grid.Column="1" >
+            <Canvas x:Name="myCanvas" MouseLeftButtonDown="myCanvas_MouseLeftButtonDown"  /> 
+        </Grid>
+    </Grid>
+</Window>
