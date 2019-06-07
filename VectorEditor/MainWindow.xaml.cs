@@ -8,6 +8,7 @@ using System.Windows.Shapes;
 using System.Runtime.Serialization.Json;
 using System.Runtime.Serialization;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace VectorEditor
 {
@@ -15,10 +16,9 @@ namespace VectorEditor
     public partial class MainWindow : Window
     {
         bool isDrawing = false;
-        string mode = "Waiting";
-        int id = 0;                                             // ID фигуры
-        List<Primitive> primitives = new List<Primitive>();     // лист с фигурами
-        Point pt;                                               // точка для выбора
+        string mode = "Waiting";                                               
+        List<BrokenLine> brokenLines = new List<BrokenLine>(); 
+        int[] xy = null;
 
         public MainWindow()
         {
@@ -40,15 +40,16 @@ namespace VectorEditor
                     if (cd.NameLine.Trim().Length == 0) name = "без названия";
                     else name = cd.NameLine;
                     int thickness = cd.Thickness;
-                    string color = cd.Color.ToString();
-
-                    primitives.Add(new Primitive(name, thickness, color));       // новая линия название и толщина
-                    listB_elements.Items.Add(primitives[primitives.Count - 1].Name);
+                    byte red = (byte)cd.slider1.Value;
+                    byte green = (byte)cd.slider2.Value;
+                    byte blue = (byte)cd.slider3.Value;
+                    // новая линия название и толщина
+                    brokenLines.Add(new BrokenLine(name, thickness, red, green, blue));
+                    listB_elements.Items.Add(brokenLines[brokenLines.Count - 1].Name);
                 }
             }
             else
-            {
-                id += 1;                                     // счётчик фигур +1
+            {                                   
                 isDrawing = false;
                 mode = "Waiting";
                 lab_mode.Content = "ожидание...";
@@ -62,9 +63,10 @@ namespace VectorEditor
             {
                 int l = listB_elements.SelectedIndex;
                 if (l > -1)
-                {
-                    listB_elements.Items.RemoveAt(l);       // удаление из листа
-                    primitives.RemoveAt(l);                 // удаление объекта
+                {   // удаление из листа
+                    listB_elements.Items.RemoveAt(l);
+                    // удаление объекта
+                    brokenLines.RemoveAt(l);
                     Draw();
                 }
                 else
@@ -91,7 +93,7 @@ namespace VectorEditor
             }
             else
             {
-                MessageBox.Show("Включен режим рисования...");
+                MessageBox.Show("Включен режим рисования");
             }
         }
 
@@ -103,32 +105,41 @@ namespace VectorEditor
                 {
                     mode = "Move";
                     lab_mode.Content = "Перемещение";
-
                 }
+                else
+                {
+                    MessageBox.Show("Для перемещения выберите элемент из списка");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Включен режим рисования");
             }
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             int x, y;
-            x = (int)(e.GetPosition(null).X - 140);             // -140 панели настрек слева
+            // -140 панели настрек слева
+            x = (int)(e.GetPosition(null).X - 140);                 
             y = (int)(e.GetPosition(null).Y);
-            
-            if (x > 0 && y > 0)                                 // в области рисования
-            {
-                if (isDrawing == true)                          // режим рисования
+
+            // в области рисования
+            if (x > 0 && y > 0)
+            {   // режим рисования
+                if (isDrawing == true)                              
                 {
-                    if (mode == "NewBrokenLine")                // рисование ломаной линии
+                    if (mode == "NewBrokenLine")                    
                     {
-                        int k = primitives.Count - 1;
-                        primitives[k].AddPoint(x, y);           // сохраняем точку
-                        Draw();                                     // рисуем 
+                        int k = brokenLines.Count - 1;
+                        brokenLines[k].AddPoint(x, y);              
+                        Draw();                                     
                     }
-                    if (mode == "NewCircle")            // круг
+                    if (mode == "NewCircle")                        
                     {
 
                     }
-                    if (mode == "NewRectangle")             // прямоуголник
+                    if (mode == "NewRectangle")                     
                     {
 
                     }
@@ -137,66 +148,47 @@ namespace VectorEditor
                 {
                     if (mode == "Move" && listB_elements.SelectedIndex > -1)
                     {
-                        int t = listB_elements.SelectedIndex;
-                        int m_X = primitives[t].MiddleX();
-                        int m_Y = primitives[t].MiddleY();
+                        int l = listB_elements.SelectedIndex;
+                        int m_X = brokenLines[l].MiddleX();
+                        int m_Y = brokenLines[l].MiddleY();
 
-                        primitives[t].MoveX(x - m_X);
-                        primitives[t].MoveY(y - m_Y);
+                        brokenLines[l].MoveX(x - m_X);
+                        brokenLines[l].MoveY(y - m_Y);
                         Draw();
                     }
                     if (mode == "Transformation" &&
-                        listB_elements.SelectedIndex > -1 &&
-                        pt != null)
+                        listB_elements.SelectedIndex > -1)
                     {
-                        int t = listB_elements.SelectedIndex;
-                        primitives[t].ReplacePoint((int)pt.X, (int)pt.Y, x, y);
+                        int l = listB_elements.SelectedIndex;
+                        if (xy != null)
+                        {
+                            brokenLines[l].ReplacePoint(xy[0], xy[1], x, y);
+                            xy = null;
+                        }
+                        else
+                        {
+                            // захват точки рядом 
+                            xy = brokenLines[l].CheckArea(x, y);
+                        }
                         Draw();
                     }
                 }
             }
         }
+        // кнопка очистка всего
         private void btn_Clear_Click(object sender, RoutedEventArgs e)
         {
-
             Reset();
             Draw();
         }
-        private void myCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (mode == "Transformation" &&
-                isDrawing == false &&
-                listB_elements.SelectedIndex > -1)
-            {
-                int l = listB_elements.SelectedIndex;
-                Point point = e.GetPosition((UIElement)sender);              // точка фигуры
-                for (int i = 0; i < primitives[l].GetListX.Count; i++)
-                {
-                    if (primitives[l].GetListX[i] == point.X &&
-                        primitives[l].GetListY[i] == point.Y)               // если такая точка есть в массиве точек этого примитива
-                    {
-                        pt = point;
-                        lab_helper.Content = pt.X + " " + pt.Y;
-                        MessageBox.Show("Выберите новое место для точки", "Точка выбрана");
-                        break;
-                    }
-                }
-            }
-        }
-
-        private void Draw()                                     // метод отрисовки всех линий и всех примитивов
+        // метод отрисовки всех линий и всех примитивов
+        private void Draw()
         {
             myCanvas.Children.Clear();
-            foreach (Primitive prim in primitives)
+            foreach (BrokenLine prim in brokenLines)
             {
-                Brush br;
-                switch (prim.Color)
-                {
-                    case "Чёрный": br = Brushes.Black; break;
-                    case "Красный": br = Brushes.Red; break;
-                    case "Зелёный": br = Brushes.Green; break;
-                    default: br = Brushes.Black; break;
-                }
+                Brush br = new SolidColorBrush(Color.FromRgb(prim.Red, prim.Green, prim.Blue));
+
                 if (prim.Points > 1)
                 {
                     for (int i = 0; i < prim.Points-1; i++)
@@ -207,96 +199,142 @@ namespace VectorEditor
                         line.X2 = prim.GetListX[i + 1];
                         line.Y2 = prim.GetListY[i + 1];
 
-                        line.Stroke = br;// Brushes.LightSteelBlue;
+                        line.Stroke = br;
                         line.StrokeThickness = prim.Thickness;
                         myCanvas.Children.Add(line);
                     }
                 }
             }
         }
-
-        private void Window_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-
-        }
-
+        // обновление информации о примитиве
         private void listB_elements_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (listB_elements.SelectedIndex>-1)
             {
                 int l = listB_elements.SelectedIndex;
-                tBoxName.Text = primitives[l].Name;
-                sliderThickness.Value = primitives[l].Thickness;
-                comboBox.Text = primitives[l].Color;
-                labNumber.Content = "Точек = " + primitives[l].Points;
+                tBoxName.Text = brokenLines[l].Name;
+                sliderThickness.Value = brokenLines[l].Thickness;
+                slider1.Value = brokenLines[l].Red;
+                slider2.Value = brokenLines[l].Green;
+                slider3.Value = brokenLines[l].Blue;
+                labNumber.Content = "Точек = " + brokenLines[l].Points;
             }
         }
-
+        // кнопка обновления 
         private void btnUpdate_Click(object sender, RoutedEventArgs e)
         {
             if (listB_elements.SelectedIndex > -1)
             {
                 int l = listB_elements.SelectedIndex;
-                primitives[l].Name = tBoxName.Text;
+                brokenLines[l].Name = tBoxName.Text;
                 listB_elements.Items[l] = tBoxName.Text;
-                primitives[l].Thickness = (int)sliderThickness.Value;
-                primitives[l].Color = comboBox.Text;
+                brokenLines[l].Thickness = (int)sliderThickness.Value;
+                brokenLines[l].Red = (byte)slider1.Value;
+                brokenLines[l].Green = (byte)slider2.Value;
+                brokenLines[l].Blue = (byte)slider3.Value;
                 Draw();
             }
             else
-            { MessageBox.Show("Элемент не выбран"); }
+            {
+                MessageBox.Show("Элемент не выбран");
+            }
         }
-
+        // очистка всего
         private void Reset()
         {
-            primitives.Clear();
+            // канвас - линии
+            myCanvas.Children.Clear();
+            // массив 
+            brokenLines.Clear();
+            // лист
             listB_elements.Items.Clear();
+            // контролы 
             tBoxName.Text = "";
             sliderThickness.Value = 2;
-            comboBox.Text = "";
+            slider1.Value = 0;
+            slider2.Value = 0;
+            slider3.Value = 0;
             labNumber.Content = "Точек = 0";
         }
-        
+        // загрузка из файла
         private void btnLoad_Click(object sender, RoutedEventArgs e)
         {
-            primitives.Clear();
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
+                Reset();
                 string path = openFileDialog.FileName;
-
-                DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<Primitive>));
-
-                using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
+                // чтение
+                string buff;
+                using (StreamReader sr = new StreamReader(path))
                 {
-                    primitives = (List<Primitive>)jsonFormatter.ReadObject(fs);
+                    buff = sr.ReadToEnd();
                 }
+                // десериализация
+                brokenLines = JsonConvert.DeserializeObject<List<BrokenLine>>(buff);
+                
                 MessageBox.Show("Загружено");
+                // заполнение листа примитивов
+                foreach (var item in brokenLines)
+                {
+                    listB_elements.Items.Add(item.Name);
+                }
+                Draw();
             }
-            foreach (var item in primitives)
-            { listB_elements.Items.Add(item.Name); }
-            Draw();
         }
-
+        // сохранение в файл
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             if (saveFileDialog.ShowDialog() == true)                // 
             {
-                string path = saveFileDialog.FileName;
-
-
-                DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<Primitive>));
-
-                using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
+                string path = saveFileDialog.FileName + ".json";
+                // сериализация
+                string json = JsonConvert.SerializeObject(brokenLines, Formatting.Indented);
+                // запись
+                using (StreamWriter sw = new StreamWriter(path, false, System.Text.Encoding.UTF8))
                 {
-                    jsonFormatter.WriteObject(fs, primitives);
+                    sw.WriteLine(json);
                 }
                 MessageBox.Show("Сохранено");
-
             }
         }
-
+        // слайдеры
+        private void slider1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (listB_elements.SelectedIndex > -1)
+            {
+                int l = listB_elements.SelectedIndex;
+                brokenLines[l].Red = (byte)slider1.Value;
+                Draw();
+            }
+        }
+        private void slider2_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (listB_elements.SelectedIndex > -1)
+            {
+                int l = listB_elements.SelectedIndex;
+                brokenLines[l].Green = (byte)slider2.Value;
+                Draw();
+            }
+        }
+        private void slider3_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (listB_elements.SelectedIndex > -1)
+            {
+                int l = listB_elements.SelectedIndex;
+                brokenLines[l].Blue = (byte)slider3.Value;
+                Draw();
+            }
+        }
+        private void sliderThickness_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (listB_elements.SelectedIndex > -1)
+            {
+                int l = listB_elements.SelectedIndex;
+                brokenLines[l].Thickness = (byte)sliderThickness.Value;
+                Draw();
+            }
+        }
     }
 }

@@ -5,20 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VectorEditor"
         mc:Ignorable="d"
-        Title="Ломаная линия" Height="198.788" Width="192.691" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="Ломаная линия" Height="418.788" Width="218.691" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
-        <StackPanel>
-            <Label x:Name="label" Content="Название" HorizontalContentAlignment="Center" FontWeight="Bold"/>
-            <TextBox x:Name="textBox" Height="23" TextWrapping="Wrap" Text=""/>
-            <Label x:Name="label1" Content="Толщина" HorizontalContentAlignment="Center" FontWeight="Bold"/>
-            <Slider x:Name="slider" Value="2" Minimum="1" Maximum="10"/>
-            <Label x:Name="label2" Content="Цвет" HorizontalContentAlignment="Center" FontWeight="Bold"/>
-            <ComboBox x:Name="comboBox">
-                <ComboBoxItem Content="Чёрный"/>
-                <ComboBoxItem Content="Красный"/>
-                <ComboBoxItem Content="Зелёный"/>
-            </ComboBox>
-            <Button x:Name="btn_Save" Content="Сохранить" Click="btn_Save_Click"/>
+        <StackPanel x:Name="stP">
+            <Label x:Name="label" Content="Название" HorizontalContentAlignment="Center" FontWeight="Bold" Margin="5,2"/>
+            <TextBox x:Name="textBox" Height="23" TextWrapping="Wrap" Text="" Margin="5,2"/>
+            <Label x:Name="label1" Content="Толщина" HorizontalContentAlignment="Center" FontWeight="Bold" Margin="5,2"/>
+            <Slider x:Name="slider" Value="2" Minimum="1" Maximum="10" Margin="5,2"/>
+            <Label x:Name="label2" Content="Цвет" HorizontalContentAlignment="Center" FontWeight="Bold" Margin="5,2"/>
+            <Label x:Name="label3" Content="Красный" FontStyle="Italic" Margin="5,2"/>
+            <Slider x:Name="slider1" Minimum="0" Maximum="255" Value="0" Margin="5,2" ValueChanged="slider1_ValueChanged" />
+            <Label x:Name="label4" Content="Зелёный" FontStyle="Italic" Margin="5,2"/>
+            <Slider x:Name="slider2" Minimum="0" Maximum="255" Value="0" Margin="5,2" ValueChanged="slider2_ValueChanged" />
+            <Label x:Name="label5" Content="Синий" FontStyle="Italic" Margin="5,2"/>
+            <Slider x:Name="slider3" Minimum="0" Maximum="255" Value="0" Margin="5,2" ValueChanged="slider3_ValueChanged" />
+            <Rectangle x:Name="rectangle" Height="40" Stroke="Black" Margin="5,2"/>
+            <Button x:Name="btn_Save" Content="Сохранить" Click="btn_Save_Click" Margin="5,2"/>
+
         </StackPanel>
 
     </Grid>

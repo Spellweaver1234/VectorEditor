@@ -22,21 +22,47 @@ namespace VectorEditor
         public CreateDialog()
         {
             InitializeComponent();
-            comboBox.SelectedIndex = 0;
+            slider1.Value = 200;
+            slider2.Value = 50;
+            slider3.Value = 200;
         }
-        public int Thickness { get { return (int)slider.Value; } }
-        public string NameLine { get { return textBox.Text; } }
-        public string Color
+        public int Thickness
         {
             get
             {
-                ComboBoxItem selectedItem = (ComboBoxItem)comboBox.SelectedItem;
-                return selectedItem.Content.ToString();
+                return (int)slider.Value;
             }
         }
+        public string NameLine
+        {
+            get
+            {
+                return textBox.Text;
+            }
+        }
+
         private void btn_Save_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = true;
+        }
+        private void ShowColor(byte R, byte G, byte B)
+        {
+            rectangle.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(R, G, B));
+        }
+
+        private void slider1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            ShowColor((byte)slider1.Value, (byte)slider2.Value, (byte)slider3.Value);
+        }
+
+        private void slider2_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            ShowColor((byte)slider1.Value, (byte)slider2.Value, (byte)slider3.Value);
+        }
+
+        private void slider3_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            ShowColor((byte)slider1.Value, (byte)slider2.Value, (byte)slider3.Value);
         }
     }
 }
